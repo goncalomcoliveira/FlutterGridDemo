@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,119 +8,166 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(nSquares: 10),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key, required this.nSquares});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  final int nSquares;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      backgroundColor: Colors.lightBlue.shade200,
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(48.0,64.0,48.0,64.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          children: [
+            Card(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(48.0),
+                child: Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InteractiveViewer(
+                        panEnabled: false, // Set it to false to prevent panning.
+                        boundaryMargin: const EdgeInsets.all(2),
+                        minScale: 0.5,
+                        maxScale: 4,
+                        child: GestureDetector(
+                          onTapDown: (details) {
+                            onTappedLocation.value = details.localPosition;
+                          },
+                          child: SizedBox(
+                            width: 600,
+                            height: 600,
+                            child: CustomPaint(
+                                size: Size(
+                                  MediaQuery.of(context).size.width,
+                                  MediaQuery.of(context).size.height,
+                                ),
+                                painter: GridPainter(nSquares: widget.nSquares, onTappedLocation: onTappedLocation, onTap: (){
+                                  print('CLICK');
+                                })
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 0, height: 24),
+                      Container(
+                        width: 128,
+                        height: 144,
+                        color: Colors.grey.shade300,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+class GridPainter extends CustomPainter {
+
+  int nSquares;
+  ValueNotifier<Offset> onTappedLocation;
+  VoidCallback onTap;
+
+  late List gridSelections;
+
+  GridPainter({required this.nSquares, required this.onTappedLocation, required this.onTap}):super(repaint: onTappedLocation) {
+    int row = nSquares;
+    int col = nSquares;
+
+    gridSelections = List<List>.generate(row, (i) => List<dynamic>.generate(col, (index) => false, growable: false), growable: false);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+
+    double spacing = size.width / nSquares;
+
+    //Squares' paints
+    final squaresPaint = Paint()
+      ..color = Colors.white;
+    final squaresPaintSelected = Paint()
+      ..color = Colors.lightBlue.shade50;
+
+    //Draw Squares
+    for (int i = 0; i < nSquares; i++) {
+      for (int j = 0; j < nSquares; j++) {
+        Path path = Path();
+        path.addRect(Rect.fromPoints(
+            Offset((i * spacing), (j * spacing)),
+            Offset(((i + 1) * spacing), ((j + 1) * spacing))
+        ));
+
+        if (path.contains(onTappedLocation.value)) {
+          gridSelections[i][j] = !gridSelections[i][j];
+          onTap();
+        }
+
+        if (gridSelections[i][j]) { canvas.drawPath(path, squaresPaintSelected); }
+        else { canvas.drawPath(path, squaresPaint); }
+      }
+    }
+
+    //Inside lines' paint
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.lightBlue.shade100
+      ..strokeWidth = 1;
+
+    //Draw inside Lines
+    for (int k = 1; k < nSquares; k++) {
+      canvas.drawLine(Offset(spacing * k, 0), Offset(spacing * k, size.height), linePaint);
+      canvas.drawLine(Offset(0, spacing * k), Offset(size.width, spacing * k), linePaint);
+    }
+
+    //Border lines' paint
+    final borderLinePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.lightBlue.shade200
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 4;
+
+    //Draw border Lines
+    canvas.drawLine(const Offset(0, 0), Offset(0, size.height), borderLinePaint);
+    canvas.drawLine(const Offset(0, 0), Offset(size.width, 0), borderLinePaint);
+    canvas.drawLine(Offset(spacing * nSquares, 0), Offset(spacing * nSquares, size.height), borderLinePaint);
+    canvas.drawLine(Offset(0, spacing * nSquares), Offset(size.width, spacing * nSquares), borderLinePaint);
+  }
+
+  @override
+  bool shouldRepaint(GridPainter oldDelegate) => false;
+  @override
+  bool shouldRebuildSemantics(GridPainter oldDelegate) => false;
 }
