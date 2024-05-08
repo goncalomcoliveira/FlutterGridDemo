@@ -1,9 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-import 'InteractiveGrid.dart';
-import 'OptionsBar.dart';
+import 'InteractiveGridLayout.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,31 +13,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
       ),
-      home: const MyHomePage(nSquares: 10),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.nSquares});
-
-  final int nSquares;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-  ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
-  var titleStyle = TextStyle(
-    fontSize: 32,
-    color: Colors.lightBlue.shade800,
-    fontWeight: FontWeight.bold,
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -53,36 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Card(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(48.0),
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text('Editable Grid', style: titleStyle)
-                      ),
-                      const SizedBox(width: 0, height: 24),
-                      InteractiveGrid(onTappedLocation: onTappedLocation, widget: widget),
-                      const SizedBox(width: 0, height: 24),
-                      GridToolbar(),
-                      const SizedBox(width: 0, height: 24),
-                      /*
-                      Container(
-                        width: 128,
-                        height: 144,
-                        color: Colors.grey.shade300,
-                      ),
-                       */
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            InteractiveGridLayout(),
           ],
         ),
       ),

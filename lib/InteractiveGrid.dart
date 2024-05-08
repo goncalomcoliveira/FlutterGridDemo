@@ -1,40 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'main.dart';
+import 'InteractiveGridLayout.dart';
 
+//ignore: must_be_immutable
 class InteractiveGrid extends StatelessWidget {
-  const InteractiveGrid({
-    super.key,
-    required this.onTappedLocation,
-    required this.widget,
-  });
+  InteractiveGrid({super.key });
 
-  final ValueNotifier<Offset> onTappedLocation;
-  final MyHomePage widget;
+  ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
 
   @override
   Widget build(BuildContext context) {
+    var globalState = context.watch<InteractiveGridLayoutState>();
+
     return InteractiveViewer(
-      panEnabled: false, // Set it to false to prevent panning.
+      panEnabled: false,
       boundaryMargin: const EdgeInsets.all(2),
       minScale: 0.5,
       maxScale: 4,
-      child: GestureDetector(
-        onTapDown: (details) {
-          onTappedLocation.value = details.localPosition;
-        },
         child: SizedBox(
           width: 600,
           height: 600,
-          child: CustomPaint(
-              size: Size(
-                MediaQuery.of(context).size.width,
-                MediaQuery.of(context).size.height,
+            child: GestureDetector(
+              onTapDown: (details) { onTappedLocation.value = details.localPosition;
+                print('Tap Down');},
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  size: Size(
+                    MediaQuery.of(context).size.width,
+                    MediaQuery.of(context).size.height,
+                  ),
+                  painter: GridPainter(globalState: globalState, onTappedLocation: onTappedLocation)
+                          ),
               ),
-              painter: GridPainter(nSquares: widget.nSquares, onTappedLocation: onTappedLocation, onTap: () {
-                print('CLICK');
-              })
-          ),
         ),
       ),
     );
@@ -43,15 +41,17 @@ class InteractiveGrid extends StatelessWidget {
 
 class GridPainter extends CustomPainter {
 
-  int nSquares;
+  InteractiveGridLayoutState globalState;
   ValueNotifier<Offset> onTappedLocation;
-  VoidCallback onTap;
 
+  late int nSquares;
   late List gridItems;
   late int? selectedX;
   late int? selectedY;
 
-  GridPainter({required this.nSquares, required this.onTappedLocation, required this.onTap}):super(repaint: onTappedLocation) {
+  GridPainter({required this.globalState, required this.onTappedLocation}):super(repaint: onTappedLocation) {
+    nSquares = globalState.nSquares;
+
     int row = nSquares;
     int col = nSquares;
 
@@ -61,6 +61,8 @@ class GridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+
+    print("UPDATE PAINT");
 
     //Square size
     double squareSize = size.width / nSquares;
@@ -88,12 +90,15 @@ class GridPainter extends CustomPainter {
 
         //If Clicked
         if (onTappedLocation.value != const Offset(0.0, 0.0) && backgroundSquare.contains(onTappedLocation.value)) {
-          if (!gridItems[i][j]) {
+          if (!gridItems[i][j] && globalState.gridState == GridState.create) {
+            gridItems[i][j] = !gridItems[i][j];
+          }
+          if (gridItems[i][j] && globalState.gridState == GridState.delete) {
             gridItems[i][j] = !gridItems[i][j];
           }
           selectedX = i;
           selectedY = j;
-          onTap();
+          //onTap();
         }
 
         bool isSelected = selectedX == i && selectedY == j;
@@ -142,18 +147,19 @@ class GridPainter extends CustomPainter {
           canvas.drawPath(insidePath, insidePaint);
 
           //Prepare and draw Text
+          double textSize = 140 / nSquares;
           TextStyle textStyle = const TextStyle();
           if (isSelected) {
-            textStyle = const TextStyle(
+            textStyle = TextStyle(
               color: Colors.white,
-              fontSize: 14,
+              fontSize: textSize,
               fontWeight: FontWeight.bold
             );
           }
           else {
-            textStyle = const TextStyle(
+            textStyle = TextStyle(
               color: Colors.black,
-              fontSize: 14,
+              fontSize: textSize,
             );
           }
           TextSpan textSpan = TextSpan(

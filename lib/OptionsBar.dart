@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'InteractiveGridLayout.dart';
 
 class GridToolbar extends StatelessWidget {
-  const GridToolbar({
-    super.key,
-  });
+  const GridToolbar({ super.key });
 
   @override
   Widget build(BuildContext context) {
+    var globalState = context.watch<InteractiveGridLayoutState>();
+
     return SizedBox(
       height: 200,
       child: Row(
