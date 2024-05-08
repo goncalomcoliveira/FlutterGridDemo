@@ -47,52 +47,132 @@ class GridPainter extends CustomPainter {
   ValueNotifier<Offset> onTappedLocation;
   VoidCallback onTap;
 
-  late List gridSelections;
+  late List gridItems;
+  late int? selectedX;
+  late int? selectedY;
 
   GridPainter({required this.nSquares, required this.onTappedLocation, required this.onTap}):super(repaint: onTappedLocation) {
     int row = nSquares;
     int col = nSquares;
 
     //Build selection array
-    gridSelections = List<List>.generate(row, (i) => List<dynamic>.generate(col, (index) => false, growable: false), growable: false);
+    gridItems = List<List>.generate(row, (i) => List<dynamic>.generate(col, (index) => false, growable: false), growable: false);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
 
-    double spacing = size.width / nSquares;
+    //Square size
+    double squareSize = size.width / nSquares;
 
-    //Squares' paints
-    final squaresPaint = Paint()
+    final backgroundPaint = Paint()
       ..color = Colors.white;
-    final squaresPaintSelected = Paint()
-      ..color = Colors.lightBlue.shade50;
+    final selectedPaint = Paint()
+      ..color = Colors.lightBlue.shade200;
+
+    selectedX = null;
+    selectedY = null;
 
     //Draw Squares
     for (int i = 0; i < nSquares; i++) {
       for (int j = 0; j < nSquares; j++) {
-        Path path = Path();
-        path.addRect(
+
+        //Create background square path
+        Path backgroundSquare = Path();
+        backgroundSquare.addRect(
             Rect.fromPoints(
-                Offset((i * spacing), (j * spacing)),
-                Offset(((i + 1) * spacing), ((j + 1) * spacing))
+                Offset((i * squareSize), (j * squareSize)),
+                Offset(((i + 1) * squareSize), ((j + 1) * squareSize))
             )
         );
 
-        if (onTappedLocation.value != const Offset(0.0, 0.0) && path.contains(onTappedLocation.value)) {
-          gridSelections[i][j] = !gridSelections[i][j];
+        //If Clicked
+        if (onTappedLocation.value != const Offset(0.0, 0.0) && backgroundSquare.contains(onTappedLocation.value)) {
+          if (!gridItems[i][j]) {
+            gridItems[i][j] = !gridItems[i][j];
+          }
+          selectedX = i;
+          selectedY = j;
           onTap();
         }
 
-        if (gridSelections[i][j]) {
-          canvas.drawPath(path, squaresPaint);
-          Path selectedPath = Path();
-          selectedPath.addOval(
-              Rect.fromCircle(center: Offset((i * spacing) + (spacing / 2), (j * spacing) + (spacing / 2)), radius: spacing / 2)
-          );
-          canvas.drawPath(selectedPath, squaresPaintSelected);
+        bool isSelected = selectedX == i && selectedY == j;
+
+        //Adapt background square color if selected
+        Paint backgroundSquarePaint = Paint();
+        if (isSelected && selectedX != null && selectedY != null) {
+          backgroundSquarePaint = selectedPaint;
         }
-        else { canvas.drawPath(path, squaresPaint); }
+        else {
+          backgroundSquarePaint = backgroundPaint;
+        }
+
+        //Draw background square path
+        canvas.drawPath(backgroundSquare, backgroundSquarePaint);
+
+        //Draw Items
+        if (gridItems[i][j]) {
+
+          //Adapt colors if selected
+          Paint borderPaint = Paint();
+          Paint insidePaint = Paint();
+          if (isSelected) {
+            borderPaint = backgroundPaint;
+            insidePaint = selectedPaint;
+          }
+          else {
+            borderPaint = selectedPaint;
+            insidePaint = backgroundPaint;
+          }
+
+          Offset center = Offset((i * squareSize) + (squareSize / 2), (j * squareSize) + (squareSize / 2));
+
+          //Draw Item Border circle
+          Path borderPath = Path();
+          borderPath.addOval(
+              Rect.fromCircle(center: center, radius: squareSize / 2)
+          );
+          canvas.drawPath(borderPath, borderPaint);
+
+          //Draw Item inside circle
+          Path insidePath = Path();
+          insidePath.addOval(
+              Rect.fromCircle(center: center, radius: (squareSize / 2) * 0.66)
+          );
+          canvas.drawPath(insidePath, insidePaint);
+
+          //Prepare and draw Text
+          TextStyle textStyle = const TextStyle();
+          if (isSelected) {
+            textStyle = const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold
+            );
+          }
+          else {
+            textStyle = const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+            );
+          }
+          TextSpan textSpan = TextSpan(
+            text: 'Item',
+            style: textStyle,
+          );
+          final textPainter = TextPainter(
+            text: textSpan,
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.center,
+          );
+          textPainter.layout(
+            minWidth: 0,
+            maxWidth: squareSize * 0.66,
+          );
+          Offset centerText = Offset((i * squareSize) + (squareSize / 2) - (textPainter.width / 2), (j * squareSize) + (squareSize / 2) - (textPainter.height / 2));
+          final offset = centerText;
+          textPainter.paint(canvas, offset);
+        }
       }
     }
 
@@ -104,8 +184,8 @@ class GridPainter extends CustomPainter {
 
     //Draw inside Lines
     for (int k = 1; k < nSquares; k++) {
-      canvas.drawLine(Offset(spacing * k, 0), Offset(spacing * k, size.height), linePaint);
-      canvas.drawLine(Offset(0, spacing * k), Offset(size.width, spacing * k), linePaint);
+      canvas.drawLine(Offset(squareSize * k, 0), Offset(squareSize * k, size.height), linePaint);
+      canvas.drawLine(Offset(0, squareSize * k), Offset(size.width, squareSize * k), linePaint);
     }
 
     //Border lines' paint
@@ -118,8 +198,8 @@ class GridPainter extends CustomPainter {
     //Draw border Lines
     canvas.drawLine(const Offset(0, 0), Offset(0, size.height), borderLinePaint);
     canvas.drawLine(const Offset(0, 0), Offset(size.width, 0), borderLinePaint);
-    canvas.drawLine(Offset(spacing * nSquares, 0), Offset(spacing * nSquares, size.height), borderLinePaint);
-    canvas.drawLine(Offset(0, spacing * nSquares), Offset(size.width, spacing * nSquares), borderLinePaint);
+    canvas.drawLine(Offset(squareSize * nSquares, 0), Offset(squareSize * nSquares, size.height), borderLinePaint);
+    canvas.drawLine(Offset(0, squareSize * nSquares), Offset(size.width, squareSize * nSquares), borderLinePaint);
   }
 
   @override

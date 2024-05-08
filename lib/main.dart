@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 0, height: 24),
                       InteractiveGrid(onTappedLocation: onTappedLocation, widget: widget),
                       const SizedBox(width: 0, height: 24),
-                      OptionsBar(),
+                      GridToolbar(),
                       const SizedBox(width: 0, height: 24),
                       /*
                       Container(
