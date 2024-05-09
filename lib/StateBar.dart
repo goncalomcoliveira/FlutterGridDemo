@@ -14,18 +14,35 @@ class _StateBarState extends State<StateBar> {
 
   @override
   Widget build(BuildContext context) {
+
+    print('Build StateBar');
+
     var globalState = context.watch<InteractiveGridLayoutState>();
 
-    ButtonStyle normalStyle = ElevatedButton.styleFrom(
-      foregroundColor: Colors.lightBlue.shade800,
-      backgroundColor: Colors.white,
-      elevation: 2,
+    ButtonStyle normalStyle = ButtonStyle(
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.lightBlue.shade800),
+      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(64.0),
+              side: BorderSide(
+                  color: Colors.lightBlue.shade200,
+                  width: 2
+              )
+          )
+      ),
+      elevation: MaterialStateProperty.all<double?>(2)
     );
 
-    ButtonStyle selectedStyle = ElevatedButton.styleFrom(
-      foregroundColor: Colors.white,
-      backgroundColor: Colors.lightBlue.shade200,
-      elevation: 4,
+    ButtonStyle selectedStyle = ButtonStyle(
+        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+        backgroundColor: MaterialStateProperty.all<Color>(Colors.lightBlue.shade200),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(64.0),
+            )
+        ),
+        elevation: MaterialStateProperty.all<double?>(4)
     );
 
     return SizedBox(
@@ -38,6 +55,7 @@ class _StateBarState extends State<StateBar> {
             onPressed: () {
               setState(() {
                 globalState.gridState = GridState.create;
+                globalState.notify();
               });
             },
             style: globalState.gridState == GridState.create ? selectedStyle : normalStyle,
@@ -48,6 +66,7 @@ class _StateBarState extends State<StateBar> {
             onPressed: () {
               setState(() {
                 globalState.gridState = GridState.select;
+                globalState.notify();
               });
             },
             style: globalState.gridState == GridState.select ? selectedStyle : normalStyle,
@@ -58,6 +77,7 @@ class _StateBarState extends State<StateBar> {
             onPressed: () {
               setState(() {
                 globalState.gridState = GridState.delete;
+                globalState.notify();
               });
             },
             style: globalState.gridState == GridState.delete ? selectedStyle : normalStyle,

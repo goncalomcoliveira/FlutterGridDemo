@@ -18,6 +18,8 @@ class InteractiveGridLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    print('Build InteractiveGridLayout');
+
     return ChangeNotifierProvider(
       create: (context) => InteractiveGridLayoutState(),
       child: Card(
@@ -51,6 +53,26 @@ class InteractiveGridLayout extends StatelessWidget {
 class InteractiveGridLayoutState extends ChangeNotifier {
   int nSquares = 10;
   GridState gridState = GridState.create;
+  GridShape gridShape = GridShape.circle;
+  int? selectedX;
+  int? selectedY;
+
+  late List gridItems;
+
+  InteractiveGridLayoutState() {
+    buildItemGrid();
+  }
+
+  //Build selection array
+  void buildItemGrid() {
+    gridItems = List<List>.generate(nSquares, (i) => List<dynamic>.generate(nSquares, (index) => false, growable: false), growable: false);
+  }
+
+  void notify() {
+    notifyListeners();
+  }
 }
 
 enum GridState { create, select, delete }
+
+enum GridShape { circle, square, star }
