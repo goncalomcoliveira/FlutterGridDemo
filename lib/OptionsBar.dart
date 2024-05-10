@@ -64,12 +64,7 @@ class _GridToolbarState extends State<GridToolbar> {
                         });
                       },
                       style: globalState.gridShape == GridShape.circle ? onStyle : offStyle,
-                      child: SizedBox(
-                        width: 100, // <-- Your width
-                        height: 52,
-                        child: CustomPaint(painter: ShapePainter(shape: GridShape.circle)
-                        ),
-                      ),
+                      child: null
                     )
                   ),
                   const SizedBox(width: 16),
@@ -84,12 +79,22 @@ class _GridToolbarState extends State<GridToolbar> {
                             });
                           },
                           style: globalState.gridShape == GridShape.square ? onStyle : offStyle,
-                          child: SizedBox(
-                              width: 100, // <-- Your width
-                              height: 52,
-                              child: CustomPaint(painter: ShapePainter(shape: GridShape.square)
-                              ),
-                          ),
+                          child: null
+                      )
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                      width: 100, // <-- Your width
+                      height: 100, // <-- Your height
+                      child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              globalState.gridShape = GridShape.star;
+                              globalState.notify();
+                            });
+                          },
+                          style: globalState.gridShape == GridShape.star ? onStyle : offStyle,
+                          child: null
                       )
                   ),
                 ],

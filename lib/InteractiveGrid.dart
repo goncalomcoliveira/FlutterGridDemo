@@ -36,13 +36,24 @@ class InteractiveGrid extends StatelessWidget {
                   //print('Tap Down');
                 },
                 child: RepaintBoundary(
-                  child: CustomPaint(
-                    size: Size(
-                      MediaQuery.of(context).size.width,
-                      MediaQuery.of(context).size.height,
-                    ),
-                    painter: GridPainter(globalState: globalState, onTappedLocation: onTappedLocation)
-                            ),
+                  child: Stack(
+                    children: [
+                      CustomPaint(
+                          size: Size(
+                            MediaQuery.of(context).size.width,
+                            MediaQuery.of(context).size.height,
+                          ),
+                          painter: GridPainter(globalState: globalState)
+                      ),
+                      CustomPaint(
+                          size: Size(
+                            MediaQuery.of(context).size.width,
+                            MediaQuery.of(context).size.height,
+                          ),
+                          painter: ItemsPainter(globalState: globalState, onTappedLocation: onTappedLocation)
+                      ),
+                    ],
+                  ),
                 ),
           ),
         ),
@@ -51,12 +62,52 @@ class InteractiveGrid extends StatelessWidget {
   }
 }
 
+
+
 class GridPainter extends CustomPainter {
+
+  InteractiveGridLayoutState globalState;
+
+  GridPainter({required this.globalState});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+
+    //Square size
+    double squareSize = size.width / globalState.nSquares;
+
+    //Backround paint
+    final backroundPaint = Paint()
+      ..color = Colors.white;
+
+    //Draw Background
+    canvas.drawRect(Rect.fromLTRB(0, 0, size.width, size.height), backroundPaint);
+
+    //Inside lines' paint
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.lightBlue.shade100
+      ..strokeWidth = 1;
+
+    //Draw inside Lines
+    for (int k = 1; k < globalState.nSquares; k++) {
+      canvas.drawLine(Offset(squareSize * k, 0), Offset(squareSize * k, size.height), linePaint);
+      canvas.drawLine(Offset(0, squareSize * k), Offset(size.width, squareSize * k), linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(GridPainter oldDelegate) => false;
+  @override
+  bool shouldRebuildSemantics(GridPainter oldDelegate) => false;
+}
+
+class ItemsPainter extends CustomPainter {
 
   InteractiveGridLayoutState globalState;
   ValueNotifier<Offset> onTappedLocation;
 
-  GridPainter({required this.globalState, required this.onTappedLocation}):super(repaint: onTappedLocation);
+  ItemsPainter({required this.globalState, required this.onTappedLocation}):super(repaint: onTappedLocation);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -102,57 +153,42 @@ class GridPainter extends CustomPainter {
 
         bool isSelected = globalState.selectedX == i && globalState.selectedY == j;
 
-        //Adapt background square color if selected
-        Paint backgroundSquarePaint = Paint();
+        //Draw background square path if selected
         if (isSelected && globalState.selectedX != null && globalState.selectedY != null) {
-          backgroundSquarePaint = selectedPaint;
+          canvas.drawPath(backgroundSquare, selectedPaint);
         }
-        else {
-          backgroundSquarePaint = backgroundPaint;
-        }
-
-        //Draw background square path
-        canvas.drawPath(backgroundSquare, backgroundSquarePaint);
 
         //Draw Items
         if (globalState.gridItems[i][j]) {
 
-          //Adapt colors if selected
-          Paint borderPaint = Paint();
-          Paint insidePaint = Paint();
+          Offset center = Offset((i * squareSize) + (squareSize / 2), (j * squareSize) + (squareSize / 2));
+
+          var strokeWidth = 8.0;
+          Color itemColor = Colors.lightBlue.shade200;
           if (isSelected) {
-            borderPaint = backgroundPaint;
-            insidePaint = selectedPaint;
-          }
-          else {
-            borderPaint = selectedPaint;
-            insidePaint = backgroundPaint;
+            itemColor = Colors.white;
           }
 
-          Offset center = Offset((i * squareSize) + (squareSize / 2), (j * squareSize) + (squareSize / 2));
+          final borderPaint = Paint()
+            ..color = itemColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth;
 
           //Draw Item Border circle
           Path borderPath = Path();
           borderPath.addOval(
-              Rect.fromCircle(center: center, radius: squareSize / 2)
+              Rect.fromCircle(center: center, radius: (squareSize - strokeWidth) / 2)
           );
           canvas.drawPath(borderPath, borderPaint);
-
-          //Draw Item inside circle
-          Path insidePath = Path();
-          insidePath.addOval(
-              Rect.fromCircle(center: center, radius: (squareSize / 2) * 0.66)
-          );
-          canvas.drawPath(insidePath, insidePaint);
 
           //Prepare and draw Text
           double textSize = 140 / globalState.nSquares;
           TextStyle textStyle = const TextStyle();
           if (isSelected) {
             textStyle = TextStyle(
-              color: Colors.white,
-              fontSize: textSize,
-              fontWeight: FontWeight.bold
+                color: Colors.white,
+                fontSize: textSize,
+                fontWeight: FontWeight.bold
             );
           }
           else {
@@ -180,37 +216,10 @@ class GridPainter extends CustomPainter {
         }
       }
     }
-
-    //Inside lines' paint
-    final linePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..color = Colors.lightBlue.shade100
-      ..strokeWidth = 1;
-
-    //Draw inside Lines
-    for (int k = 1; k < globalState.nSquares; k++) {
-      canvas.drawLine(Offset(squareSize * k, 0), Offset(squareSize * k, size.height), linePaint);
-      canvas.drawLine(Offset(0, squareSize * k), Offset(size.width, squareSize * k), linePaint);
-    }
-
-    /*
-    //Border lines' paint
-    final borderLinePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..color = Colors.lightBlue.shade200
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 4;
-
-    //Draw border Lines
-    canvas.drawLine(const Offset(0, 0), Offset(0, size.height), borderLinePaint);
-    canvas.drawLine(const Offset(0, 0), Offset(size.width, 0), borderLinePaint);
-    canvas.drawLine(Offset(squareSize * globalState.nSquares, 0), Offset(squareSize * globalState.nSquares, size.height), borderLinePaint);
-    canvas.drawLine(Offset(0, squareSize * globalState.nSquares), Offset(size.width, squareSize * globalState.nSquares), borderLinePaint);
-     */
   }
 
   @override
-  bool shouldRepaint(GridPainter oldDelegate) => false;
+  bool shouldRepaint(ItemsPainter oldDelegate) => false;
   @override
-  bool shouldRebuildSemantics(GridPainter oldDelegate) => false;
+  bool shouldRebuildSemantics(ItemsPainter oldDelegate) => false;
 }
