@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'InteractiveGridLayout.dart';
+import 'interactive_grid_layout.dart';
 
 class GridToolbar extends StatefulWidget {
   const GridToolbar({ super.key });

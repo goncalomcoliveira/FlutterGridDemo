@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'InteractiveGridLayout.dart';
+import 'interactive_grid_layout.dart';
 
 void main() {
   runApp(const MyApp());

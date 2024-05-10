@@ -1,70 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import 'package:flutter/material.dart';
 
-
-import 'InteractiveGridLayout.dart';
-
-//ignore: must_be_immutable
-class InteractiveGrid extends StatelessWidget {
-  InteractiveGrid({super.key });
-
-  ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
-
-  @override
-  Widget build(BuildContext context) {
-    var globalState = context.watch<InteractiveGridLayoutState>();
-
-    print('Build InteractiveGrid');
-
-    return Container(
-      width: 600,
-      height: 600,
-      decoration: BoxDecoration(
-        color: Colors.lightBlue.shade200,
-        border: Border.all(
-          width: 4,
-          color: Colors.lightBlue.shade200,
-        ),
-      ),
-      child: InteractiveViewer(
-        panEnabled: false,
-        boundaryMargin: const EdgeInsets.all(2),
-        minScale: 0.8,
-        maxScale: 4,
-          child: SizedBox(
-              child: GestureDetector(
-                onTapDown: (details) { onTappedLocation.value = details.localPosition;
-                  //print('Tap Down');
-                },
-                child: RepaintBoundary(
-                  child: Stack(
-                    children: [
-                      CustomPaint(
-                          size: Size(
-                            MediaQuery.of(context).size.width,
-                            MediaQuery.of(context).size.height,
-                          ),
-                          painter: GridPainter(globalState: globalState)
-                      ),
-                      CustomPaint(
-                          size: Size(
-                            MediaQuery.of(context).size.width,
-                            MediaQuery.of(context).size.height,
-                          ),
-                          painter: ItemsPainter(globalState: globalState, onTappedLocation: onTappedLocation)
-                      ),
-                    ],
-                  ),
-                ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
+import 'interactive_grid_layout.dart';
 
 class GridPainter extends CustomPainter {
 
@@ -193,31 +130,31 @@ class ItemsPainter extends CustomPainter {
                   )
               );
             case GridShape.star: {
-                var numOfPoints = 5;
-                var offset = 3;
-                var path = Path();
+              var numOfPoints = 5;
+              var offset = 3;
+              var path = Path();
 
-                var radius = (squareSize - strokeWidth) / 2;
-                var inner = radius / 1.5;
-                var rotation = math.pi / 2 * 3;
-                var step = math.pi / numOfPoints;
+              var radius = (squareSize - strokeWidth) / 2;
+              var inner = radius / 1.5;
+              var rotation = math.pi / 2 * 3;
+              var step = math.pi / numOfPoints;
 
-                path.moveTo(0, - (radius - offset));
+              path.moveTo(0, - (radius - offset));
 
-                for (var i = 0; i <= numOfPoints; i++) {
-                  var x = math.cos(rotation) * radius;
-                  var y = math.sin(rotation) * radius;
-                  path.lineTo(x, y + offset);
-                  rotation += step;
+              for (var i = 0; i <= numOfPoints; i++) {
+                var x = math.cos(rotation) * radius;
+                var y = math.sin(rotation) * radius;
+                path.lineTo(x, y + offset);
+                rotation += step;
 
-                  x = math.cos(rotation) * inner;
-                  y = math.sin(rotation) * inner;
-                  path.lineTo(x, y + offset);
-                  rotation += step;
-                }
-
-                borderPath.addPath(path, center);
+                x = math.cos(rotation) * inner;
+                y = math.sin(rotation) * inner;
+                path.lineTo(x, y + offset);
+                rotation += step;
               }
+
+              borderPath.addPath(path, center);
+            }
           }
           canvas.drawPath(borderPath, borderPaint);
 
@@ -262,4 +199,149 @@ class ItemsPainter extends CustomPainter {
   bool shouldRepaint(ItemsPainter oldDelegate) => false;
   @override
   bool shouldRebuildSemantics(ItemsPainter oldDelegate) => false;
+}
+
+class VerticalBarPainter extends CustomPainter {
+
+  InteractiveGridLayoutState globalState;
+  ValueNotifier<Matrix4> transformation;
+
+  VerticalBarPainter({required this.globalState, required this.transformation}):super(repaint: transformation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+
+    final double scale = transformation.value.getMaxScaleOnAxis();
+    final double dy = transformation.value.getTranslation().y;
+
+    //Square size
+    double squareSize = size.height / globalState.nSquares * scale;
+    double lineOffset = 4.0;
+
+    //Backround paint
+    final backroundPaint = Paint()
+      ..color = Colors.lightBlue.shade200;
+
+    //Draw Background
+    canvas.drawRect(Rect.fromLTRB(0, 0, size.width, size.height), backroundPaint);
+
+    //Inside lines' paint
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.white
+      ..strokeWidth = 1;
+
+    //Draw inside Lines
+    for (int k = 1; k <= globalState.nSquares; k++) {
+      double y = dy + squareSize * k;
+      if (y >= 0 && y <= size.height && k < globalState.nSquares) {
+          canvas.drawLine(
+            Offset(0 + lineOffset, y), Offset(size.width, y), linePaint);
+      }
+
+      //Prepare and draw Text
+      double textSize = 14;
+      TextStyle textStyle = TextStyle(
+          color: Colors.white,
+          fontSize: textSize,
+          fontWeight: FontWeight.bold
+      );
+      TextSpan textSpan = TextSpan(
+        text: k.toString(),
+        style: textStyle,
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout(
+        minWidth: 0,
+        maxWidth: squareSize * 0.66,
+      );
+      y -= (squareSize / 2);
+      if (y >= 0 + (textPainter.height / 2) && y <= size.height - (textPainter.height / 2)) {
+        Offset centerText = Offset((size.width / 2) - (textPainter.width / 2), y - (textPainter.height / 2));
+        final offset = centerText;
+        textPainter.paint(canvas, offset);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(VerticalBarPainter oldDelegate) => false;
+  @override
+  bool shouldRebuildSemantics(VerticalBarPainter oldDelegate) => false;
+}
+
+class HorizontalBarPainter extends CustomPainter {
+
+  InteractiveGridLayoutState globalState;
+  ValueNotifier<Matrix4> transformation;
+
+  HorizontalBarPainter({required this.globalState, required this.transformation}):super(repaint: transformation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+
+    final double scale = transformation.value.getMaxScaleOnAxis();
+    final double dx = transformation.value.getTranslation().x;
+
+    //Square size
+    double squareSize = size.width / globalState.nSquares * scale;
+    double lineOffset = 4.0;
+
+    //Backround paint
+    final backroundPaint = Paint()
+      ..color = Colors.lightBlue.shade200;
+
+    //Draw Background
+    canvas.drawRect(Rect.fromLTRB(0, 0, size.width, size.height), backroundPaint);
+
+    //Inside lines' paint
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.white
+      ..strokeWidth = 1;
+
+    //Draw inside Lines
+    for (int k = 1; k <= globalState.nSquares; k++) {
+      double x = dx + squareSize * k;
+      if (x >= 0 && x <= size.width && k < globalState.nSquares) { // Only draw the line if it's within the canvas
+        canvas.drawLine(Offset(x, 0 + lineOffset), Offset(x, size.height), linePaint);
+      }
+
+      //Prepare and draw Text
+      double textSize = 14;
+      TextStyle textStyle = TextStyle(
+          color: Colors.white,
+          fontSize: textSize,
+          fontWeight: FontWeight.bold
+      );
+      TextSpan textSpan = TextSpan(
+        text: k.toString(),
+        style: textStyle,
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout(
+        minWidth: 0,
+        maxWidth: squareSize * 0.66,
+      );
+      x -= (squareSize / 2);
+      if (x >= 0 + (textPainter.width / 2) && x <= size.width - (textPainter.height / 2)) {
+        Offset centerText = Offset(x - (textPainter.width / 2), (size.height / 2) - (textPainter.height / 2));
+        final offset = centerText;
+        textPainter.paint(canvas, offset);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(HorizontalBarPainter oldDelegate) => false;
+  @override
+  bool shouldRebuildSemantics(HorizontalBarPainter oldDelegate) => false;
 }

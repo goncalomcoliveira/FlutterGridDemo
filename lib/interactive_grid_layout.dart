@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'InteractiveGrid.dart';
-import 'OptionsBar.dart';
-import 'StateBar.dart';
+import 'interactive_grid.dart';
+import 'options_bar.dart';
+import 'state_bar.dart';
 
 //ignore: must_be_immutable
 class InteractiveGridLayout extends StatelessWidget {
@@ -51,7 +51,7 @@ class InteractiveGridLayout extends StatelessWidget {
 }
 
 class InteractiveGridLayoutState extends ChangeNotifier {
-  int nSquares = 16;
+  int nSquares = 10;
   GridState gridState = GridState.create;
   GridShape gridShape = GridShape.circle;
   int? selectedX;
