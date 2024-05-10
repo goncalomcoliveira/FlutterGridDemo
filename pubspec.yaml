@@ -65,6 +65,15 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
+  assets:
+    - assets/images/icon/GridIcon.png
+    - assets/images/shapes/circle_base.png
+    - assets/images/shapes/circle_selected.png
+    - assets/images/shapes/square_base.png
+    - assets/images/shapes/square_selected.png
+    - assets/images/shapes/star_base.png
+    - assets/images/shapes/star_selected.png
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

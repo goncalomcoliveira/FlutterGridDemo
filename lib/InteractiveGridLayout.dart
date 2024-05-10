@@ -51,7 +51,7 @@ class InteractiveGridLayout extends StatelessWidget {
 }
 
 class InteractiveGridLayoutState extends ChangeNotifier {
-  int nSquares = 10;
+  int nSquares = 16;
   GridState gridState = GridState.create;
   GridShape gridShape = GridShape.circle;
   int? selectedX;
@@ -65,7 +65,7 @@ class InteractiveGridLayoutState extends ChangeNotifier {
 
   //Build selection array
   void buildItemGrid() {
-    gridItems = List<List>.generate(nSquares, (i) => List<dynamic>.generate(nSquares, (index) => false, growable: false), growable: false);
+    gridItems = List<List>.generate(nSquares, (i) => List<dynamic>.generate(nSquares, (index) => null, growable: false), growable: false);
   }
 
   void notify() {

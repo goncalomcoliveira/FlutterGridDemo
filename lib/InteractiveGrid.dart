@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
+
 
 import 'InteractiveGridLayout.dart';
 
@@ -117,8 +119,6 @@ class ItemsPainter extends CustomPainter {
     //Square size
     double squareSize = size.width / globalState.nSquares;
 
-    final backgroundPaint = Paint()
-      ..color = Colors.white;
     final selectedPaint = Paint()
       ..color = Colors.lightBlue.shade200;
 
@@ -140,11 +140,11 @@ class ItemsPainter extends CustomPainter {
 
         //If Clicked
         if (onTappedLocation.value != const Offset(0.0, 0.0) && backgroundSquare.contains(onTappedLocation.value)) {
-          if (!globalState.gridItems[i][j] && globalState.gridState == GridState.create) {
-            globalState.gridItems[i][j] = !globalState.gridItems[i][j];
+          if (globalState.gridState == GridState.create && globalState.gridItems[i][j] != globalState.gridShape) {
+            globalState.gridItems[i][j] = globalState.gridShape;
           }
-          if (globalState.gridItems[i][j] && globalState.gridState == GridState.delete) {
-            globalState.gridItems[i][j] = !globalState.gridItems[i][j];
+          if (globalState.gridState == GridState.delete && globalState.gridItems[i][j] != null) {
+            globalState.gridItems[i][j] = null;
           }
           globalState.selectedX = i;
           globalState.selectedY = j;
@@ -159,7 +159,9 @@ class ItemsPainter extends CustomPainter {
         }
 
         //Draw Items
-        if (globalState.gridItems[i][j]) {
+        if (globalState.gridItems[i][j] != null) {
+
+          print(globalState.gridItems[i][j]);
 
           Offset center = Offset((i * squareSize) + (squareSize / 2), (j * squareSize) + (squareSize / 2));
 
@@ -171,14 +173,52 @@ class ItemsPainter extends CustomPainter {
 
           final borderPaint = Paint()
             ..color = itemColor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth;
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth;
 
           //Draw Item Border circle
           Path borderPath = Path();
-          borderPath.addOval(
-              Rect.fromCircle(center: center, radius: (squareSize - strokeWidth) / 2)
-          );
+          switch (globalState.gridItems[i][j]) {
+            case GridShape.circle:
+              borderPath.addOval(
+                  Rect.fromCircle(
+                      center: center, radius: (squareSize - strokeWidth) / 2)
+              );
+            case GridShape.square:
+              borderPath.addRect(
+                  Rect.fromCenter(
+                      center: center,
+                      width: squareSize - strokeWidth,
+                      height: squareSize - strokeWidth
+                  )
+              );
+            case GridShape.star: {
+                var numOfPoints = 5;
+                var offset = 3;
+                var path = Path();
+
+                var radius = (squareSize - strokeWidth) / 2;
+                var inner = radius / 1.5;
+                var rotation = math.pi / 2 * 3;
+                var step = math.pi / numOfPoints;
+
+                path.moveTo(0, - (radius - offset));
+
+                for (var i = 0; i <= numOfPoints; i++) {
+                  var x = math.cos(rotation) * radius;
+                  var y = math.sin(rotation) * radius;
+                  path.lineTo(x, y + offset);
+                  rotation += step;
+
+                  x = math.cos(rotation) * inner;
+                  y = math.sin(rotation) * inner;
+                  path.lineTo(x, y + offset);
+                  rotation += step;
+                }
+
+                borderPath.addPath(path, center);
+              }
+          }
           canvas.drawPath(borderPath, borderPaint);
 
           //Prepare and draw Text
