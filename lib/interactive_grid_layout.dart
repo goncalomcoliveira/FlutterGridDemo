@@ -51,19 +51,30 @@ class InteractiveGridLayout extends StatelessWidget {
 }
 
 class InteractiveGridLayoutState extends ChangeNotifier {
-  int nSquares = 10;
   GridState gridState = GridState.create;
   GridShape gridShape = GridShape.circle;
 
-  late List gridItems;
+  late List<List> gridItems = List<List>.generate(10, (i) => List<dynamic>.generate(10, (index) => null, growable: false), growable: false);
 
   InteractiveGridLayoutState() {
-    buildItemGrid();
+    gridItems = List<List>.generate(10, (i) => List<dynamic>.generate(10, (index) => null, growable: false), growable: false);
   }
 
   //Build selection array
-  void buildItemGrid() {
-    gridItems = List<List>.generate(nSquares, (i) => List<dynamic>.generate(nSquares, (index) => null, growable: false), growable: false);
+  void resizeItemGrid(int size) {
+    gridItems = resizeList(gridItems, size, size);
+  }
+
+  List<List<dynamic>> resizeList(List<List<dynamic>> originalList, int newRowSize, int newColumnSize) {
+    List<List<dynamic>> resizedList = List.generate(newRowSize, (i) => List<dynamic>.generate(newColumnSize, (index) => null, growable: false), growable: false);
+
+    for (int i = 0; i < originalList.length && i < newRowSize; i++) {
+      for (int j = 0; j < originalList[i].length && j < newColumnSize; j++) {
+        resizedList[i][j] = originalList[i][j];
+      }
+    }
+
+    return resizedList;
   }
 
   void updateState(GridState gridState) {

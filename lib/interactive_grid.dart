@@ -4,53 +4,100 @@ import 'package:provider/provider.dart';
 import 'interactive_grid_layout.dart';
 
 //ignore: must_be_immutable
-class InteractiveGrid extends StatelessWidget {
-  InteractiveGrid({super.key });
+class InteractiveGrid extends StatefulWidget {
+  const InteractiveGrid({super.key });
 
-  ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
+  @override
+  State<InteractiveGrid> createState() => _InteractiveGridState();
+}
+
+class _InteractiveGridState extends State<InteractiveGrid> {
+
+  ValueNotifier<int> gridSize = ValueNotifier(10);
   ValueNotifier<Matrix4> transformation = ValueNotifier(Matrix4.identity());
+
+  bool isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
+
+    gridSize.addListener(() {
+      transformation.value = Matrix4.identity();
+    });
+
     TransformationController transformationController = TransformationController();
 
     print('  Build InteractiveGrid');
 
-    return Column(
+    return Stack(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        Column(
           children: [
-            TopBar(
-                transformation: transformation),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TopBar(gridSize: gridSize, transformation: transformation),
+              ],
+            ),
+            Row(
+              children: [
+                SideBar(
+                    gridSize: gridSize,
+                    transformation: transformation),
+                GridView(
+                    gridSize: gridSize,
+                    transformationController: transformationController,
+                    transformation: transformation),
+              ],
+            ),
           ],
         ),
-        Row(
-          children: [
-            SideBar(
-                transformation: transformation),
-            GridView(
-                transformationController: transformationController,
-                transformation: transformation,
-                onTappedLocation: onTappedLocation),
-          ],
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.lightBlue.shade400,
+            border: Border.all(
+              width: 2,
+              color: Colors.lightBlue.shade400,
+            ),
+          ),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: IconButton(
+              onPressed: () {
+                setState(() {
+                  if (isExpanded) {
+                    gridSize.value = 10;
+                    isExpanded = false;
+                  }
+                  else {
+                    gridSize.value = 12;
+                    isExpanded = true;
+                  }
+                });
+              },
+              icon: isExpanded ? Image.asset('assets/images/icon/smaller_icon.png') : Image.asset('assets/images/icon/bigger_icon.png'),
+            ),
+          )
         ),
-      ],
+      ]
     );
   }
 }
 
 class GridView extends StatelessWidget {
-  const GridView({
+  GridView({
     super.key,
+    required this.gridSize,
     required this.transformationController,
     required this.transformation,
-    required this.onTappedLocation,
   });
 
+  final ValueNotifier<int> gridSize;
   final TransformationController transformationController;
   final ValueNotifier<Matrix4> transformation;
-  final ValueNotifier<Offset> onTappedLocation;
+
+  ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
 
   @override
   Widget build(BuildContext context) {
@@ -89,14 +136,14 @@ class GridView extends StatelessWidget {
                             MediaQuery.of(context).size.width,
                             MediaQuery.of(context).size.height,
                           ),
-                          painter: GridPainter(globalState: globalState)
+                          painter: GridPainter(gridSize: gridSize)
                       ),
                       CustomPaint(
                           size: Size(
                             MediaQuery.of(context).size.width,
                             MediaQuery.of(context).size.height,
                           ),
-                          painter: ItemsPainter(globalState: globalState, onTappedLocation: onTappedLocation)
+                          painter: ItemsPainter(globalState: globalState, gridSize: gridSize, onTappedLocation: onTappedLocation)
                       ),
                     ],
                   ),
@@ -111,9 +158,11 @@ class GridView extends StatelessWidget {
 class SideBar extends StatelessWidget {
   const SideBar({
     super.key,
+    required this.gridSize,
     required this.transformation,
   });
 
+  final ValueNotifier<int> gridSize;
   final ValueNotifier<Matrix4> transformation;
 
   @override
@@ -141,7 +190,7 @@ class SideBar extends StatelessWidget {
                   MediaQuery.of(context).size.width,
                   MediaQuery.of(context).size.height,
                 ),
-                painter: VerticalBarPainter(globalState: globalState, transformation: transformation)
+                painter: VerticalBarPainter(globalState: globalState, gridSize: gridSize, transformation: transformation)
             ),
           ],
         ),
@@ -153,9 +202,11 @@ class SideBar extends StatelessWidget {
 class TopBar extends StatelessWidget {
   const TopBar({
     super.key,
+    required this.gridSize,
     required this.transformation,
   });
 
+  final ValueNotifier<int> gridSize;
   final ValueNotifier<Matrix4> transformation;
 
   @override
@@ -183,7 +234,7 @@ class TopBar extends StatelessWidget {
                   MediaQuery.of(context).size.width,
                   MediaQuery.of(context).size.height,
                 ),
-                painter: HorizontalBarPainter(globalState: globalState, transformation: transformation)
+                painter: HorizontalBarPainter(globalState: globalState, gridSize: gridSize, transformation: transformation)
             ),
           ],
         ),

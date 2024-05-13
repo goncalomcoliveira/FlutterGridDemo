@@ -5,15 +5,15 @@ import 'interactive_grid_layout.dart';
 
 class GridPainter extends CustomPainter {
 
-  InteractiveGridLayoutState globalState;
+  final ValueNotifier<int> gridSize;
 
-  GridPainter({required this.globalState});
+  GridPainter({required this.gridSize}):super(repaint: gridSize);
 
   @override
   void paint(Canvas canvas, Size size) {
 
     //Square size
-    double squareSize = size.width / globalState.nSquares;
+    double squareSize = size.width / gridSize.value;
 
     //Backround paint
     final backroundPaint = Paint()
@@ -29,7 +29,7 @@ class GridPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     //Draw inside Lines
-    for (int k = 1; k < globalState.nSquares; k++) {
+    for (int k = 1; k < gridSize.value; k++) {
       canvas.drawLine(Offset(squareSize * k, 0), Offset(squareSize * k, size.height), linePaint);
       canvas.drawLine(Offset(0, squareSize * k), Offset(size.width, squareSize * k), linePaint);
     }
@@ -44,15 +44,20 @@ class GridPainter extends CustomPainter {
 class ItemsPainter extends CustomPainter {
 
   InteractiveGridLayoutState globalState;
+  final ValueNotifier<int> gridSize;
   ValueNotifier<Offset> onTappedLocation;
 
-  ItemsPainter({required this.globalState, required this.onTappedLocation}):super(repaint: onTappedLocation);
+  ItemsPainter({required this.globalState, required this.gridSize, required this.onTappedLocation}):
+        super(repaint:
+          Listenable.merge(List<Listenable>.from([onTappedLocation, gridSize])));
 
   @override
   void paint(Canvas canvas, Size size) {
 
+    globalState.resizeItemGrid(gridSize.value);
+
     //Square size
-    double squareSize = size.width / globalState.nSquares;
+    double squareSize = size.width / gridSize.value;
 
     final selectedPaint = Paint()
       ..color = Colors.lightBlue.shade200;
@@ -61,8 +66,8 @@ class ItemsPainter extends CustomPainter {
     int? selectedY;
 
     //Draw Squares
-    for (int i = 0; i < globalState.nSquares; i++) {
-      for (int j = 0; j < globalState.nSquares; j++) {
+    for (int i = 0; i < gridSize.value; i++) {
+      for (int j = 0; j < gridSize.value; j++) {
 
         //Create background square path
         Path backgroundSquare = Path();
@@ -155,7 +160,7 @@ class ItemsPainter extends CustomPainter {
           canvas.drawPath(borderPath, borderPaint);
 
           //Prepare and draw Text
-          double textSize = 140 / globalState.nSquares;
+          double textSize = 140 / gridSize.value;
           TextStyle textStyle = const TextStyle();
           if (isSelected) {
             textStyle = TextStyle(
@@ -200,9 +205,12 @@ class ItemsPainter extends CustomPainter {
 class VerticalBarPainter extends CustomPainter {
 
   InteractiveGridLayoutState globalState;
+  final ValueNotifier<int> gridSize;
   ValueNotifier<Matrix4> transformation;
 
-  VerticalBarPainter({required this.globalState, required this.transformation}):super(repaint: transformation);
+  VerticalBarPainter({required this.globalState, required this.gridSize, required this.transformation}):
+        super(repaint:
+          Listenable.merge(List<Listenable>.from([transformation, gridSize])));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -211,7 +219,7 @@ class VerticalBarPainter extends CustomPainter {
     final double dy = transformation.value.getTranslation().y;
 
     //Square size
-    double squareSize = size.height / globalState.nSquares * scale;
+    double squareSize = size.height / gridSize.value * scale;
     double lineOffset = 4.0;
 
     //Backround paint
@@ -228,9 +236,9 @@ class VerticalBarPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     //Draw inside Lines
-    for (int k = 1; k <= globalState.nSquares; k++) {
+    for (int k = 1; k <= gridSize.value; k++) {
       double y = dy + squareSize * k;
-      if (y >= 0 && y <= size.height && k < globalState.nSquares) {
+      if (y >= 0 && y <= size.height && k < gridSize.value) {
           canvas.drawLine(
             Offset(0 + lineOffset, y), Offset(size.width, y), linePaint);
       }
@@ -273,9 +281,12 @@ class VerticalBarPainter extends CustomPainter {
 class HorizontalBarPainter extends CustomPainter {
 
   InteractiveGridLayoutState globalState;
+  final ValueNotifier<int> gridSize;
   ValueNotifier<Matrix4> transformation;
 
-  HorizontalBarPainter({required this.globalState, required this.transformation}):super(repaint: transformation);
+  HorizontalBarPainter({required this.globalState, required this.gridSize, required this.transformation}):
+        super(repaint:
+          Listenable.merge(List<Listenable>.from([transformation, gridSize])));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -284,7 +295,7 @@ class HorizontalBarPainter extends CustomPainter {
     final double dx = transformation.value.getTranslation().x;
 
     //Square size
-    double squareSize = size.width / globalState.nSquares * scale;
+    double squareSize = size.width / gridSize.value * scale;
     double lineOffset = 4.0;
 
     //Backround paint
@@ -301,9 +312,9 @@ class HorizontalBarPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     //Draw inside Lines
-    for (int k = 1; k <= globalState.nSquares; k++) {
+    for (int k = 1; k <= gridSize.value; k++) {
       double x = dx + squareSize * k;
-      if (x >= 0 && x <= size.width && k < globalState.nSquares) { // Only draw the line if it's within the canvas
+      if (x >= 0 && x <= size.width && k < gridSize.value) { // Only draw the line if it's within the canvas
         canvas.drawLine(Offset(x, 0 + lineOffset), Offset(x, size.height), linePaint);
       }
 
