@@ -14,7 +14,7 @@ class _GridToolbarState extends State<GridToolbar> {
   @override
   Widget build(BuildContext context) {
 
-    print('Build GridToolbar');
+    print('  Build GridToolbar');
 
     var globalState = context.watch<InteractiveGridLayoutState>();
     var gridState = globalState.gridState;

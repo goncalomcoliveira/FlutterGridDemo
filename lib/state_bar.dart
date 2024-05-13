@@ -15,7 +15,7 @@ class _StateBarState extends State<StateBar> {
   @override
   Widget build(BuildContext context) {
 
-    print('Build StateBar');
+    print('  Build StateBar');
 
     var globalState = context.watch<InteractiveGridLayoutState>();
 

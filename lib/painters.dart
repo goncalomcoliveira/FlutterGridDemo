@@ -51,8 +51,6 @@ class ItemsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
 
-    //print("UPDATE PAINT");
-
     //Square size
     double squareSize = size.width / globalState.nSquares;
 
@@ -97,8 +95,6 @@ class ItemsPainter extends CustomPainter {
 
         //Draw Items
         if (globalState.gridItems[i][j] != null) {
-
-          print(globalState.gridItems[i][j]);
 
           Offset center = Offset((i * squareSize) + (squareSize / 2), (j * squareSize) + (squareSize / 2));
 
