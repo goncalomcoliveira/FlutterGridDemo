@@ -59,8 +59,8 @@ class ItemsPainter extends CustomPainter {
     final selectedPaint = Paint()
       ..color = Colors.lightBlue.shade200;
 
-    globalState.selectedX = null;
-    globalState.selectedY = null;
+    int? selectedX;
+    int? selectedY;
 
     //Draw Squares
     for (int i = 0; i < globalState.nSquares; i++) {
@@ -83,15 +83,15 @@ class ItemsPainter extends CustomPainter {
           if (globalState.gridState == GridState.delete && globalState.gridItems[i][j] != null) {
             globalState.gridItems[i][j] = null;
           }
-          globalState.selectedX = i;
-          globalState.selectedY = j;
+          selectedX = i;
+          selectedY = j;
           //onTap();
         }
 
-        bool isSelected = globalState.selectedX == i && globalState.selectedY == j;
+        bool isSelected = selectedX == i && selectedY == j;
 
         //Draw background square path if selected
-        if (isSelected && globalState.selectedX != null && globalState.selectedY != null) {
+        if (isSelected && selectedX != null && selectedY != null) {
           canvas.drawPath(backgroundSquare, selectedPaint);
         }
 

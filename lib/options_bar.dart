@@ -58,8 +58,7 @@ class _GridToolbarState extends State<GridToolbar> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        globalState.gridShape = GridShape.circle;
-                        globalState.notify();
+                        globalState.updateShape(GridShape.circle);
                       });
                     },
                     icon: globalState.gridShape == GridShape.circle ?
@@ -77,8 +76,7 @@ class _GridToolbarState extends State<GridToolbar> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        globalState.gridShape = GridShape.square;
-                        globalState.notify();
+                        globalState.updateShape(GridShape.square);
                       });
                     },
                     icon: globalState.gridShape == GridShape.square ?
@@ -96,8 +94,7 @@ class _GridToolbarState extends State<GridToolbar> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        globalState.gridShape = GridShape.star;
-                        globalState.notify();
+                        globalState.updateShape(GridShape.star);
                       });
                     },
                     icon: globalState.gridShape == GridShape.star ?

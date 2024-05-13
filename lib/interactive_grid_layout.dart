@@ -54,8 +54,6 @@ class InteractiveGridLayoutState extends ChangeNotifier {
   int nSquares = 10;
   GridState gridState = GridState.create;
   GridShape gridShape = GridShape.circle;
-  int? selectedX;
-  int? selectedY;
 
   late List gridItems;
 
@@ -68,11 +66,16 @@ class InteractiveGridLayoutState extends ChangeNotifier {
     gridItems = List<List>.generate(nSquares, (i) => List<dynamic>.generate(nSquares, (index) => null, growable: false), growable: false);
   }
 
-  void notify() {
+  void updateState(GridState gridState) {
+    this.gridState = gridState;
+    notifyListeners();
+  }
+
+  void updateShape(GridShape gridShape) {
+    this.gridShape = gridShape;
     notifyListeners();
   }
 }
 
 enum GridState { create, select, delete }
-
 enum GridShape { circle, square, star }

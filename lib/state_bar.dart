@@ -54,8 +54,7 @@ class _StateBarState extends State<StateBar> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                globalState.gridState = GridState.create;
-                globalState.notify();
+                globalState.updateState(GridState.create);
               });
             },
             style: globalState.gridState == GridState.create ? selectedStyle : normalStyle,
@@ -65,8 +64,8 @@ class _StateBarState extends State<StateBar> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                globalState.gridState = GridState.select;
-                globalState.notify();
+                globalState.updateState(GridState.select);
+
               });
             },
             style: globalState.gridState == GridState.select ? selectedStyle : normalStyle,
@@ -76,8 +75,8 @@ class _StateBarState extends State<StateBar> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                globalState.gridState = GridState.delete;
-                globalState.notify();
+                globalState.updateState(GridState.delete);
+
               });
             },
             style: globalState.gridState == GridState.delete ? selectedStyle : normalStyle,
