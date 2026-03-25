@@ -1,16 +1,28 @@
-# flutter_grid_demo
+# Interactable Grid Demo (Flutter)
 
-A Flutter dynamic Grid object placement demo.
+This project is a simple interactive grid demo built with Flutter. It showcases dynamic grid manipulation and user interaction features.
 
-## Getting Started
+## About the Project
 
-This project is a starting point for a Flutter application.
+The demo allows users to interact with a customizable grid, making it easy to test layout behavior and UI interactions in a flexible environment.
 
-A few resources to get you started if this is your first Flutter project:
+## Features
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* Zoom in and zoom out functionality
+* Adjustable grid size
+* Add items to the grid
+* Remove items from the grid
+* Support for different item sizes and shapes
+* Smooth and responsive interactions
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Built With
+
+* Flutter
+
+## Purpose
+
+This project was created as a demonstration of interactive UI systems, focusing on grid-based layouts and real-time user interaction.
+
+---
+
+Feel free to explore and experiment with the grid!
